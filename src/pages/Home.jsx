@@ -1,8 +1,42 @@
-import React from 'react';
-import { FaGlobe, FaInstagram, FaLinkedinIn } from 'react-icons/fa';
+import React, { useState } from 'react';
+import { FaGlobe, FaInstagram, FaLinkedinIn, FaCheck, FaEnvelope, FaPaperPlane } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 
 const Home = () => {
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+
+    if (!email) {
+      alert('Please enter your email address');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Simulate API call (replace with actual newsletter service)
+    setTimeout(() => {
+      setIsSubscribed(true);
+      setIsLoading(false);
+
+      // Reset after success message
+      setTimeout(() => {
+        setEmail('');
+        setIsSubscribed(false);
+      }, 3000);
+    }, 1500);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -70,6 +104,74 @@ const Home = () => {
               <p className="text-gray-600">Center for creativity, research, and technological advancement.</p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Newsletter Section */}
+      <section className="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-16 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+            Stay Updated <FaPaperPlane className="inline ml-2" />
+          </h2>
+          <p className="text-xl mb-8 text-white max-w-2xl mx-auto">
+            Get notified about upcoming events and opportunities at Poornima University
+          </p>
+
+          {/* Subscription Form */}
+          <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <FaEnvelope className="absolute left-4 top-4 text-gray-400 z-10" />
+                <input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full pl-12 pr-4 py-4 rounded-lg transition-all duration-300 ${
+                    isSubscribed
+                      ? 'bg-green-100 text-green-600 border border-green-300'
+                      : 'text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-white'
+                  }`}
+                  disabled={isSubscribed || isLoading}
+                  required
+                />
+                {isSubscribed && (
+                  <FaCheck className="absolute right-4 top-4 text-green-500" />
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={isSubscribed || isLoading}
+                className={`px-8 py-4 rounded-lg font-semibold transition-all duration-300 ${
+                  isSubscribed
+                    ? 'bg-green-500 text-white cursor-not-allowed'
+                    : isLoading
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-white text-blue-600 hover:bg-gray-100 hover:shadow-lg'
+                } transform hover:scale-105`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    Subscribing...
+                  </div>
+                ) : isSubscribed ? (
+                  <div className="flex items-center">
+                    <FaCheck className="mr-2" />
+                    Subscribed!
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    Subscribe
+                    <FaPaperPlane className="ml-2" />
+                  </div>
+                )}
+              </button>
+            </div>
+            <p className="text-white text-sm mt-4 opacity-90">
+              We respect your privacy. No spam, only relevant updates about events and opportunities.
+            </p>
+          </form>
         </div>
       </section>
 

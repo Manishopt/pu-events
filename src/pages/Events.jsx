@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { db } from '../config/firebase';
 import { ref, onValue, push, set } from 'firebase/database';
-import { FaCalendarAlt, FaCheckCircle, FaTimes, FaSignInAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaCheckCircle, FaTimes, FaSignInAlt, FaEnvelope, FaPaperPlane, FaCheck } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +17,10 @@ const Events = () => {
     email: '',
     regNo: ''
   });
+  const [email, setEmail] = useState('');
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -198,6 +202,65 @@ const Events = () => {
     { name: 'regNo', type: 'text', placeholder: '2024/19029', label: 'Registration Number' }
   ];
 
+  const handleSubscribe = (e) => {
+    e.preventDefault();
+
+    if (!email) {
+      alert('Please enter your email address');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+
+    // Simulate API call (replace with actual newsletter service)
+    setTimeout(() => {
+      setIsSubscribed(true);
+      setIsLoading(false);
+
+      // Reset after success message
+      setTimeout(() => {
+        setEmail('');
+        setIsSubscribed(false);
+      }, 3000);
+    }, 1500);
+  };
+
+  // Filter events by category
+  const getFilteredEvents = () => {
+    if (selectedCategory === 'all') {
+      return events;
+    }
+    return events.filter(event => event.category?.toLowerCase() === selectedCategory.toLowerCase());
+  };
+
+  const handleCategoryClick = (categoryTitle) => {
+    if (categoryTitle === 'Academic') {
+      setSelectedCategory('academic');
+    } else if (categoryTitle === 'Career') {
+      setSelectedCategory('career');
+    } else if (categoryTitle === 'Cultural') {
+      setSelectedCategory('cultural');
+    } else if (categoryTitle === 'Sports') {
+      setSelectedCategory('sports');
+    }
+  };
+
+  const getCategoryName = () => {
+    if (selectedCategory === 'all') return '';
+    if (selectedCategory === 'academic') return 'Academic';
+    if (selectedCategory === 'career') return 'Career';
+    if (selectedCategory === 'cultural') return 'Cultural';
+    if (selectedCategory === 'sports') return 'Sports';
+    return '';
+  };
+
   if (loading) {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -234,14 +297,31 @@ const Events = () => {
 
         {/* Events Grid */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Upcoming Events</h2>
-          {events.length === 0 ? (
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">
+              {selectedCategory === 'all' ? 'Upcoming Events' : `${getCategoryName()} Events`}
+            </h2>
+            {selectedCategory !== 'all' && (
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+              >
+                <span>Show All Events</span>
+                <span className="text-lg">←</span>
+              </button>
+            )}
+          </div>
+          {getFilteredEvents().length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-600 text-lg">No events available at the moment.</p>
+              <p className="text-gray-600 text-lg">
+                {selectedCategory === 'all'
+                  ? 'No events available at the moment.'
+                  : `No ${getCategoryName().toLowerCase()} events available.`}
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {events.map((event) => (
+              {getFilteredEvents().map((event) => (
                 <div
                   key={event.id}
                   className="bg-white rounded-2xl shadow-pu-lg hover:shadow-pu-xl transition-all duration-300 overflow-hidden hover:scale-105 transform animate-fade-in border border-gray-200"
@@ -306,38 +386,113 @@ const Events = () => {
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">Event Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
-              { icon: '🎯', title: 'Academic', desc: 'Workshops & Seminars' },
-              { icon: '💼', title: 'Career', desc: 'Job Fairs & Placement' },
-              { icon: '🎨', title: 'Cultural', desc: 'Music & Dance Events' },
-              { icon: '🏆', title: 'Sports', desc: 'Competitions & Tournaments' }
+              { icon: '🎯', title: 'Academic', desc: 'Workshops & Seminars', key: 'academic' },
+              { icon: '💼', title: 'Career', desc: 'Job Fairs & Placement', key: 'career' },
+              { icon: '🎨', title: 'Cultural', desc: 'Music & Dance Events', key: 'cultural' },
+              { icon: '🏆', title: 'Sports', desc: 'Competitions & Tournaments', key: 'sports' }
             ].map((category, index) => (
               <div
                 key={index}
-                className="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer"
+                onClick={() => handleCategoryClick(category.title)}
+                className={`text-center p-6 rounded-xl shadow-lg cursor-pointer transition-all duration-300 transform hover:scale-105 ${
+                  selectedCategory === category.key
+                    ? 'bg-blue-500 text-white shadow-xl ring-2 ring-blue-300'
+                    : 'bg-white hover:shadow-xl border-2 hover:border-blue-200'
+                }`}
               >
                 <div className="text-4xl mb-4">{category.icon}</div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.title}</h3>
-                <p className="text-gray-600 text-sm">{category.desc}</p>
+                <h3 className={`text-lg font-semibold mb-2 ${
+                  selectedCategory === category.key ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {category.title}
+                </h3>
+                <p className={`text-sm ${
+                  selectedCategory === category.key ? 'text-blue-100' : 'text-gray-600'
+                }`}>
+                  {category.desc}
+                </p>
               </div>
             ))}
           </div>
+          {selectedCategory !== 'all' && (
+            <div className="text-center mt-6">
+              <button
+                onClick={() => setSelectedCategory('all')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                🏠 View All Events
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Newsletter Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Stay Updated</h2>
-          <p className="text-xl mb-6">Get notified about upcoming events and opportunities</p>
-          <div className="max-w-md mx-auto flex gap-4">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-white"
-            />
-            <button className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200">
-              Subscribe
-            </button>
+        <section className="w-full bg-gradient-to-r from-blue-600 to-purple-600 py-16 px-6">
+          <div className="max-w-7xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
+              Stay Updated <FaPaperPlane className="inline ml-2" />
+            </h2>
+            <p className="text-xl mb-8 text-white max-w-2xl mx-auto">
+              Get notified about upcoming events and opportunities at Poornima University
+            </p>
+
+            {/* Subscription Form */}
+            <form onSubmit={handleSubscribe} className="max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <FaEnvelope className="absolute left-4 top-4 text-gray-400 z-10" />
+                  <input
+                    type="email"
+                    placeholder="Enter your email address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full pl-12 pr-4 py-4 rounded-lg transition-all duration-300 ${
+                      isSubscribed
+                        ? 'bg-green-100 text-green-600 border border-green-300'
+                        : 'text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-white'
+                    }`}
+                    disabled={isSubscribed || isLoading}
+                    required
+                  />
+                  {isSubscribed && (
+                    <FaCheck className="absolute right-4 top-4 text-green-500" />
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubscribed || isLoading}
+                  className={`px-8 py-4 rounded-lg font-semibold transition-all duration-300 ${
+                    isSubscribed
+                      ? 'bg-green-500 text-white cursor-not-allowed'
+                      : isLoading
+                      ? 'bg-gray-400 text-white cursor-not-allowed'
+                      : 'bg-white text-blue-600 hover:bg-gray-100 hover:shadow-lg'
+                  } transform hover:scale-105`}
+                >
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      Subscribing...
+                    </div>
+                  ) : isSubscribed ? (
+                    <div className="flex items-center">
+                      <FaCheck className="mr-2" />
+                      Subscribed!
+                    </div>
+                  ) : (
+                    <div className="flex items-center">
+                      Subscribe
+                      <FaPaperPlane className="ml-2" />
+                    </div>
+                  )}
+                </button>
+              </div>
+              <p className="text-white text-sm mt-4 opacity-90">
+                We respect your privacy. No spam, only relevant updates about events and opportunities.
+              </p>
+            </form>
           </div>
-        </div>
+        </section>
       </div>
 
       {/* Modal */}
