@@ -361,18 +361,18 @@ const Events = () => {
                         Register Now
                       </button>
                     ) : (
-                      <div className="flex flex-col space-y-2">
-                        <button
-                          onClick={() => showToast('Please login to register for events.', 'login')}
-                          className="w-full px-4 py-3 bg-gray-400 text-white rounded-xl font-medium opacity-60 cursor-not-allowed shadow-md"
-                        >
-                          <FaSignInAlt className="inline mr-2" />
-                          Login to Register
-                        </button>
-                        <p className="text-xs text-pu-blue-600 text-center font-medium">
-                          Authentication required
-                        </p>
-                      </div>
+                      <button
+                        onClick={() => {
+                          showToast('Redirecting to login...', 'info');
+                          setTimeout(() => {
+                            navigate('/admin');
+                          }, 1000);
+                        }}
+                        className="w-full px-4 py-3 bg-pu-blue-600 text-white rounded-xl font-medium hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+                      >
+                        <FaSignInAlt className="inline mr-2" />
+                        Login to Register
+                      </button>
                     )}
                   </div>
                 </div>
@@ -543,13 +543,20 @@ const Events = () => {
       {/* Toast Notification */}
       {toast.show && (
         <div className={`fixed bottom-4 right-4 px-6 py-4 rounded-lg shadow-lg z-50 ${
-          toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'
+          toast.type === 'success' ? 'bg-green-500' :
+          toast.type === 'error' ? 'bg-red-500' :
+          toast.type === 'info' ? 'bg-blue-500' :
+          'bg-gray-500'
         }`}>
           <div className="flex items-center">
             {toast.type === 'success' ? (
               <FaCheckCircle className="text-white mr-2" />
-            ) : (
+            ) : toast.type === 'error' ? (
               <FaTimes className="text-white mr-2" />
+            ) : toast.type === 'info' ? (
+              <FaSignInAlt className="text-white mr-2" />
+            ) : (
+              <span className="text-white mr-2">ℹ️</span>
             )}
             <p className="text-white font-medium">{toast.message}</p>
           </div>
